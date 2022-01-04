@@ -70,11 +70,11 @@ impl Hit for Sphere {
 }
 
 pub struct Surfaces {
-    surfaces: Vec<Box<dyn Hit>>,
+    surfaces: Vec<Box<dyn Hit + Sync>>,
 }
 
 impl Surfaces {
-    pub fn new(surfaces: Vec<Box<dyn Hit>>) -> Self {
+    pub fn new(surfaces: Vec<Box<dyn Hit + Sync>>) -> Self {
         Self { surfaces }
     }
 

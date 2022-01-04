@@ -35,7 +35,7 @@ fn main() {
         )),
     ]);
 
-    let mut image = Image::new(800, 400);
-    image.render(&camera, &surfaces);
+    let mut image = Image::new(1800, 900);
+    image.render(&camera, &surfaces, 12);
     image.to_ppm("./render.ppm".to_string());
 }

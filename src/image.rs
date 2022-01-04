@@ -1,3 +1,4 @@
+use crossbeam::scope;
 use std::{fs::File, io::Write};
 
 use rand::Rng;
@@ -32,10 +33,18 @@ impl Image {
         }
     }
 
-    pub fn render(&mut self, camera: &Camera, surfaces: &Surfaces) {
-        for pixel in self.pixels.iter_mut() {
-            pixel.render(&camera, &surfaces);
-        }
+    pub fn render(&mut self, camera: &Camera, surfaces: &Surfaces, n_threads: usize) {
+        let chunk_size = self.height * self.width / n_threads;
+        scope(|s| {
+            for pixels in self.pixels.chunks_mut(chunk_size) {
+                s.spawn(|_| {
+                    for pixel in pixels.iter_mut() {
+                        pixel.render(camera, surfaces);
+                    }
+                });
+            }
+        })
+        .unwrap();
     }
 
     pub fn to_ppm(&self, file_path: String) {
