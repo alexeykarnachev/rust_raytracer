@@ -6,8 +6,16 @@ pub trait Hit {
 
 #[derive(Clone, Copy)]
 pub enum Material {
-    Lambertian(f32),
-    Metal(f32),
+    Lambertian {
+        attenuation: Vec3,
+    },
+    Metal {
+        attenuation: Vec3,
+        fuzz: f32,
+    },
+    Dielectric {
+        refraction_k: f32,
+    },
 }
 
 pub struct HitRes {

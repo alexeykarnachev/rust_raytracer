@@ -15,8 +15,12 @@ impl Vec3 {
         Vec3 { data: [x, y, z] }
     }
 
-    pub fn zero() -> Self {
+    pub fn zeros() -> Self {
         Vec3 { data: [0.0; 3] }
+    }
+
+    pub fn ones() -> Self {
+        Vec3 { data: [1.0; 3] }
     }
 
     pub fn x(&self) -> f32 {

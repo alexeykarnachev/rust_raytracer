@@ -6,7 +6,7 @@ use rand::Rng;
 use crate::{
     camera::Camera,
     ray::Ray,
-    scatters::{scatter_lambertian, scatter_metal},
+    scatters::{scatter_dielectric, scatter_lambertian, scatter_metal},
     surfaces::{Material, Surfaces},
     vec3::Vec3,
 };
@@ -70,6 +70,7 @@ struct Pixel {
 }
 
 const N_AA_STEPS: usize = 100;
+const AA_STRENGTH: f32 = 0.002;
 
 impl Pixel {
     pub fn new(u: f32, v: f32) -> Self {
@@ -77,11 +78,11 @@ impl Pixel {
     }
 
     pub fn render(&mut self, camera: &Camera, surfaces: &Surfaces) {
-        let mut color = Vec3::zero();
+        let mut color = Vec3::zeros();
         let mut rng = rand::thread_rng();
         for _ in 0..N_AA_STEPS {
-            let v = self.v as f32 + 0.002 * rng.gen::<f32>();
-            let u = self.u as f32 + 0.002 * rng.gen::<f32>();
+            let v = self.v as f32 + AA_STRENGTH * rng.gen::<f32>();
+            let u = self.u as f32 + AA_STRENGTH * rng.gen::<f32>();
             let ray = camera.get_ray(u, v);
             color += get_color(&ray, &surfaces, 0);
         }
@@ -95,22 +96,26 @@ impl Pixel {
 
 fn get_color(ray: &Ray, surfaces: &Surfaces, depth: i32) -> Vec3 {
     if let Some(hit_res) = surfaces.hit(ray, 0.001, f32::MAX) {
-        let attenuation: f32;
+        let att: Vec3;
         if depth < 50 {
             if let Some(scattered) = match hit_res.material {
-                Material::Lambertian(a) => {
-                    attenuation = a;
+                Material::Lambertian { attenuation } => {
+                    att = attenuation;
                     scatter_lambertian(&hit_res)
                 }
-                Material::Metal(a) => {
-                    attenuation = a;
-                    scatter_metal(ray, &hit_res)
+                Material::Metal { attenuation, fuzz } => {
+                    att = attenuation;
+                    scatter_metal(ray, &hit_res, fuzz)
+                }
+                Material::Dielectric { refraction_k } => {
+                    att = Vec3::ones();
+                    scatter_dielectric(ray, &hit_res, refraction_k)
                 }
             } {
-                return get_color(&scattered, surfaces, depth + 1).scale(attenuation);
+                return att * get_color(&scattered, surfaces, depth + 1);
             };
         }
-        return Vec3::zero();
+        return Vec3::zeros();
     } else {
         let t = 0.5 * (ray.direction.y() + 1.0);
         return Vec3::new(1.0, 1.0, 1.0).scale(1.0 - t) + Vec3::new(0.5, 0.7, 1.0).scale(t);
