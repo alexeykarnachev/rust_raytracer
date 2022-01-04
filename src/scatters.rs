@@ -1,8 +1,4 @@
-use crate::{
-    ray::Ray,
-    surfaces::{HitRes, Material, Surfaces},
-    vec3::Vec3,
-};
+use crate::{ray::Ray, surfaces::HitRes, vec3::Vec3};
 use rand::Rng;
 
 pub fn scatter_lambertian(hit_res: &HitRes) -> Option<Ray> {
@@ -30,28 +26,4 @@ pub fn scatter_metal(inp_ray: &Ray, hit_res: &HitRes) -> Option<Ray> {
         return Some(scattered);
     }
     None
-}
-
-pub fn get_color(ray: &Ray, surfaces: &Surfaces, depth: i32) -> Vec3 {
-    if let Some(hit_res) = surfaces.hit(ray, 0.001, f32::MAX) {
-        let attenuation: f32;
-        if depth < 50 {
-            if let Some(scattered) = match hit_res.material {
-                Material::Lambertian(a) => {
-                    attenuation = a;
-                    scatter_lambertian(&hit_res)
-                }
-                Material::Metal(a) => {
-                    attenuation = a;
-                    scatter_metal(ray, &hit_res)
-                }
-            } {
-                return get_color(&scattered, surfaces, depth + 1).scale(attenuation);
-            };
-        }
-        return Vec3::zero();
-    } else {
-        let t = 0.5 * (ray.direction.y() + 1.0);
-        return Vec3::new(1.0, 1.0, 1.0).scale(1.0 - t) + Vec3::new(0.5, 0.7, 1.0).scale(t);
-    }
 }

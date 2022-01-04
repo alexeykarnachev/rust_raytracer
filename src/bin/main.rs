@@ -1,9 +1,6 @@
-use std::{fs::File, io::Write};
-
-use rand::Rng;
 use rust_raytracer::{
     camera::Camera,
-    scatters::get_color,
+    image::Image,
     surfaces::{Material, Sphere, Surfaces},
     vec3::Vec3,
 };
@@ -37,32 +34,8 @@ fn main() {
             Material::Lambertian(0.5),
         )),
     ]);
-    let mut out_file = File::create("render.ppm").unwrap();
 
-    let nx = 800;
-    let ny = 400;
-    let ns = 100;
-    out_file
-        .write(format!("P3\n{} {}\n255\n", nx, ny).as_bytes())
-        .unwrap();
-    let mut rng = rand::thread_rng();
-    for j in (0..ny).rev() {
-        for i in 0..nx {
-            let mut color = Vec3::zero();
-            // Anti aliasing:
-            for _ in 0..ns {
-                let v = (j as f32 + rng.gen::<f32>()) / ny as f32;
-                let u = (i as f32 + rng.gen::<f32>()) / nx as f32;
-                let ray = camera.get_ray(u, v);
-                color += get_color(&ray, &surfaces, 0);
-            }
-            color = color.scale(1.0 / ns as f32);
-            color = Vec3::new(color.x().sqrt(), color.y().sqrt(), color.z().sqrt());
-            color = color.scale(255.99);
-
-            out_file
-                .write(format!("{} {} {}\n", color.r(), color.g(), color.b()).as_bytes())
-                .unwrap();
-        }
-    }
+    let mut image = Image::new(800, 400);
+    image.render(&camera, &surfaces);
+    image.to_ppm("./render.ppm".to_string());
 }
