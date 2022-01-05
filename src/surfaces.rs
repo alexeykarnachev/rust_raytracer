@@ -1,3 +1,5 @@
+use rand::Rng;
+
 use crate::{ray::Ray, vec3::Vec3};
 
 pub trait Hit {
@@ -6,16 +8,9 @@ pub trait Hit {
 
 #[derive(Clone, Copy)]
 pub enum Material {
-    Lambertian {
-        attenuation: Vec3,
-    },
-    Metal {
-        attenuation: Vec3,
-        fuzz: f32,
-    },
-    Dielectric {
-        ref_k: f32,
-    },
+    Lambertian { attenuation: Vec3 },
+    Metal { attenuation: Vec3, fuzz: f32 },
+    Dielectric { ref_k: f32 },
 }
 
 pub struct HitRes {
@@ -83,6 +78,83 @@ pub struct Surfaces {
 
 impl Surfaces {
     pub fn new(surfaces: Vec<Box<dyn Hit + Sync>>) -> Self {
+        Self { surfaces }
+    }
+
+    pub fn generate() -> Self {
+        let mut rng = rand::thread_rng();
+        let mut rnd = || rng.gen::<f32>();
+
+        let mut surfaces: Vec<Box<dyn Hit + Sync>> = vec![];
+
+        for a in -11..11 {
+            for b in -11..11 {
+                let center = Vec3::new(a as f32 + 0.9 * rnd(), 0.2, b as f32 + 0.9 * rnd());
+                if (center - Vec3::new(4.0, 0.2, 0.0)).length() > 0.9 {
+                    let choose_mat = rnd();
+                    if choose_mat < 0.8 {
+                        surfaces.push(Box::new(Sphere::new(
+                            center,
+                            0.2,
+                            Material::Lambertian {
+                                attenuation: Vec3::new(rnd() * rnd(), rnd() * rnd(), rnd() * rnd()),
+                            },
+                        )));
+                    } else if choose_mat < 0.95 {
+                        surfaces.push(Box::new(Sphere::new(
+                            center,
+                            0.2,
+                            Material::Metal {
+                                attenuation: Vec3::new(
+                                    0.5 * (1.0 + rnd()),
+                                    0.5 * (1.0 + rnd()),
+                                    0.5 * (1.0 + rnd()),
+                                ),
+                                fuzz: 0.5 * rnd(),
+                            },
+                        )));
+                    } else {
+                        surfaces.push(Box::new(Sphere::new(
+                            center,
+                            0.2,
+                            Material::Dielectric { ref_k: 1.5 },
+                        )))
+                    }
+                }
+            }
+        }
+
+        surfaces.push(Box::new(Sphere::new(
+            Vec3::new(0.0, -1000.0, 0.0),
+            1000.0,
+            Material::Lambertian {
+                attenuation: Vec3::new(0.1, 0.5, 0.1),
+            },
+        )));
+
+        surfaces.push(Box::new(Sphere::new(
+            Vec3::new(0.0, 1.0, 0.0),
+            1.0,
+            Material::Dielectric { ref_k: 1.5 },
+        )));
+
+        surfaces.push(Box::new(Sphere::new(
+            Vec3::new(-4.0, 1.0, 0.0),
+            1.0,
+            Material::Lambertian {
+                attenuation: Vec3::new(0.4, 0.2, 0.1),
+            },
+        )));
+
+        surfaces.push(Box::new(Sphere::new(
+            Vec3::new(4.0, 1.0, 0.0),
+            1.0,
+            Material::Metal {
+                attenuation: Vec3::new(0.7, 0.6, 0.5),
+                fuzz: 0.5 * rnd(),
+            },
+        )));
+
         Self { surfaces }
     }
 
