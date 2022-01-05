@@ -67,6 +67,14 @@ impl Vec3 {
         res
     }
 
+    pub fn cross(&self, other: &Vec3) -> Vec3 {
+        Vec3::new(
+            self.y() * other.z() - self.z() * other.y(),
+            -(self.x() * other.z() - self.z() * other.x()),
+            self.x() * other.y() - self.y() * other.x(),
+        )
+    }
+
     pub fn get_unit(&self) -> Self {
         let len = self.length();
         self.scale(1.0 / len)
@@ -238,5 +246,9 @@ mod tests {
 
         vec = vec.get_unit();
         assert_eq!(vec.length(), 1.0);
+
+        let vec1 = Vec3::new(1.0, 2.0, 3.0);
+        let vec2 = Vec3::new(4.0, 5.0, 6.0);
+        assert_eq!(vec1.cross(&vec2), Vec3::new(-3.0, 6.0, -3.0));
     }
 }

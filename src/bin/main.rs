@@ -6,7 +6,20 @@ use rust_raytracer::{
 };
 
 fn main() {
-    let camera = Camera::default();
+    let nx = 800;
+    let ny = 400;
+    let lookfrom = Vec3::new(-2.0, 2.0, 1.0);
+    let lookat = Vec3::new(0.0, 0.0, -1.0);
+    let camera = Camera::new(
+        lookfrom,
+        lookat,
+        Vec3::new(0.0, 1.0, 0.0),
+        45.0,
+        nx as f32 / ny as f32,
+        0.0,
+        (lookfrom - lookat).length(),
+    );
+
     let surfaces = Surfaces::new(vec![
         Box::new(Sphere::new(
             Vec3::new(0.0, 0.0, -1.0),
@@ -33,14 +46,11 @@ fn main() {
         Box::new(Sphere::new(
             Vec3::new(-1.0, 0.0, -1.0),
             0.5,
-            Material::Dielectric {
-                refraction_k: 1.5,
-            },
+            Material::Dielectric { ref_k: 2.0 },
         )),
     ]);
 
-    // let mut image = Image::new(1800, 900);
-    let mut image = Image::new(800, 400);
+    let mut image = Image::new(nx, ny);
     image.render(&camera, &surfaces, 12);
     image.to_ppm("./render.ppm".to_string());
 }

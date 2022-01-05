@@ -107,9 +107,9 @@ fn get_color(ray: &Ray, surfaces: &Surfaces, depth: i32) -> Vec3 {
                     att = attenuation;
                     scatter_metal(ray, &hit_res, fuzz)
                 }
-                Material::Dielectric { refraction_k } => {
+                Material::Dielectric { ref_k } => {
                     att = Vec3::ones();
-                    scatter_dielectric(ray, &hit_res, refraction_k)
+                    scatter_dielectric(ray, &hit_res, ref_k)
                 }
             } {
                 return att * get_color(&scattered, surfaces, depth + 1);

@@ -14,7 +14,7 @@ pub enum Material {
         fuzz: f32,
     },
     Dielectric {
-        refraction_k: f32,
+        ref_k: f32,
     },
 }
 
