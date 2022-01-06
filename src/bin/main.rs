@@ -1,6 +1,10 @@
+use std::time;
+
 use rust_raytracer::{camera::Camera, image::Image, surfaces::Surfaces, vec3::Vec3};
 
 fn main() {
+    let start = time::Instant::now();
+
     let n_threads = 12;
     let nx = 400;
     let ny = 200;
@@ -22,4 +26,6 @@ fn main() {
     let mut image = Image::new(nx, ny);
     image.render(&camera, &surfaces, n_threads);
     image.to_ppm("./render.ppm".to_string());
+
+    println!("Elapsed time: {}s", start.elapsed().as_secs());
 }
